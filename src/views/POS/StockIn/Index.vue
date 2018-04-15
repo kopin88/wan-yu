@@ -1,19 +1,22 @@
 <template>
 <v-ons-page>
-  <page-toolbar :title="title"></page-toolbar>
-  <data-viewer :source="source" :thead="thead" :filter="filter" :create="create" :title="title" style="margin-top:63px; padding-bottom:80px">
+    <custom-toolbar backLabel="Anim" :title="title">
+      <!-- <template slot="right">
+        <v-ons-icon style="color:white; padding-right:10px" icon="md-edit"  @click="editFinancialYear = true"></v-ons-icon>
+      </template> -->
+    </custom-toolbar>
+  <data-viewer :source="source" :thead="thead" :filter="filter" :create="create" :title="title" style="padding-bottom:80px">
       <template slot-scope="props">
-          <tr @click="$router.push('/stockins/' + props.item.id)">
-              <!-- <td>{{ props.item.date }}</td> -->
+          <tr @click="StockInShowPush(animation, props.item)">
               <td>{{ props.item.date | moment("DD - MMM - YYYY") }}</td>
               <td>{{ props.item.invoice_no }}</td>
-              <!-- <td>{{props.item.supplier.name}}</td>
-              <td>{{props.item.discount}}</td> -->
+              <td>{{props.item.supplier.name}}</td>
+              <!-- <td>{{props.item.discount}}</td> -->
               <td class="text-right">{{ props.item.total }}</td>
           </tr>
       </template>
   </data-viewer>
-  <v-ons-fab position="bottom right" @click="$router.push('/stockins/create')">
+  <v-ons-fab position="bottom right" @click="stockInAdd(animation)">
     <v-ons-icon icon="md-plus"></v-ons-icon>
   </v-ons-fab>
 </v-ons-page>
@@ -23,7 +26,8 @@
 <script>
     import Vue from 'vue'
     import DataViewer from '../../../components/StockDataViewer.vue'
-    import PageToolbar from '../../Layout/Toolbar.vue'
+    import StockInShow from './Show.vue'
+    import StockInForm from './Form.vue'
     import { apiDomain } from '../../../helpers/api'
     Vue.use(require('vue-moment'));
 
@@ -32,12 +36,12 @@
         data() {
             return {
                 title: 'Stock In List',
-                source: apiDomain + '/stockins',
+                // source: apiDomain + '/stockins',
                 create: apiDomain + '/stockins/create',
                 thead: [
-                    {title: '    Date   ', key: 'date', sort: true},
+                    {title: '      Date   ', key: 'date', sort: true},
                     {title: 'Invoice', key: 'invoice_no', sort: true},
-                    // {title: 'Supplier', key: 'supplier.name', sort: false},
+                    {title: 'Supplier', key: 'supplier.name', sort: false},
                     // {title: 'Discount', key: 'discount', sort: true},
                     {title: 'Total', key: 'total', sort: true}
                 ],
@@ -49,22 +53,49 @@
             }
         },
         components: {
-            DataViewer,
-            PageToolbar
+            DataViewer
+        },
+        methods: {
+          StockInShowPush(name, data) {
+    				this.$store.commit('navigator/options', {
+    					// Sets animations
+    					animation: name,
+    					stockin: data,
+    					// Resets default options
+    					callback: () => this.$store.commit('navigator/options', {})
+    				});
+
+    				this.$store.commit('navigator/push', {
+    					extends: StockInShow,
+    					data() {
+    						return {
+    							animation: name,
+    							stockin: data
+    						}
+    					}
+    				});
+    			},
+          stockInAdd(name) {
+    				this.$store.commit('navigator/options', {
+    					// Sets animations
+    					animation: name,
+    					// month: data,
+    					// Resets default options
+    					callback: () => this.$store.commit('navigator/options', {})
+    				});
+
+    				this.$store.commit('navigator/push', {
+    					extends: StockInForm,
+    					data() {
+    						return {
+    							animation: name,
+    							// month: data,
+    							title: "New Invoice",
+                  meta: 'create'
+    						}
+    					}
+    				});
+    			},
         }
     }
 </script>
-
-
-<style scoped>
-.img {
-  height: 80px;
-  width: 80px;
-  border-radius: 10%;
-}
-
-/* .fab {
-  background-color: green;
-  color: white;
-} */
-</style>

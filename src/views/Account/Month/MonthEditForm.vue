@@ -24,7 +24,7 @@
                   <v-ons-icon icon="fa-question-circle-o" class="list-item__icon"></v-ons-icon>
                 </div>
                 <label class="center">
-                    <v-ons-input placeholder="Monthly report title" v-model="form.title" float style="width:90%"> </v-ons-input>
+                    <v-ons-input placeholder="Monthly report title" v-model="form.title" float style="width:90%;font-family:Zawgyi-one;"> </v-ons-input>
                     <v-ons-text class="text__danger" v-if="error.title">{{ error.title[0] }}
                     </v-ons-text>
                 </label>
@@ -46,12 +46,19 @@
                   <v-ons-icon icon="fa-question-circle-o" class="list-item__icon"></v-ons-icon>
                 </div>
                 <label class="center">
-                  <v-ons-input placeholder="Opening Balance" v-model="form.open_balance" float style="width:90%"> </v-ons-input>
+                  <v-ons-input type="number" placeholder="Opening Balance" v-model="form.open_balance" float style="width:90%"> </v-ons-input>
                   <v-ons-text class="text__danger" v-if="error.title">{{ error.title[0] }}
                   </v-ons-text>
                 </label>
               </v-ons-list-item>
         </v-ons-list>
+        <v-ons-modal
+		      :visible="modalVisible"
+		    >
+		      <p style="text-align: center">
+		        Save <v-ons-icon icon="fa-spinner" spin></v-ons-icon>
+		      </p>
+		    </v-ons-modal>
   </v-ons-page>
 </template>
 
@@ -81,6 +88,7 @@
 				months: [],
 				error: {},
 				isProcessing: false,
+        modalVisible: false,
 				action: 'Create'
 			}
 		},
@@ -92,6 +100,7 @@
 		},
 		methods: {
 			save() {
+        this.modalVisible = true
 				const form = toMulipartedForm(this.form, 'edit')
 				post(apiDomain + `/months/${this.form.id}?_method=PUT`, form)
 				    .then((res) => {

@@ -1,6 +1,7 @@
 import 'onsenui/css/onsenui.css'; // Onsen UI basic CSS
 import 'onsenui/css/onsen-css-components.css'; // Default Onsen UI CSS components
 import 'bootstrap/dist/css/bootstrap.css';
+import 'vue-multiselect/dist/vue-multiselect.min.css';
 import './assets/css/style.css'; // Custom Style
 // import './onsen-css-components.css'; // Onsen UI CSS components source for custom themes (requires cssnext)
 

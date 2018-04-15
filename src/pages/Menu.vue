@@ -17,83 +17,106 @@
           {{ item.title }}
         </div>
         <div class="right">
-          <v-ons-icon icon="fa-link"></v-ons-icon>
+          <v-ons-icon icon="ion-chevron-right"></v-ons-icon>
         </div>
       </v-ons-list-item>
     </v-ons-list>
 
-    <v-ons-list-title>Links</v-ons-list-title>
+    <v-ons-list-title>Setting</v-ons-list-title>
     <v-ons-list>
-      <v-ons-list-item v-for="item in links" :key="item.title"
+      <v-ons-list-item v-if="authState.api_token && authState.user_id === 1" v-for="page of pages" :key="page.title"
+        @click="push(page.component, page.title)"
         :modifier="md && 'nodivider'"
-        @click="loadLink(item.url)"
       >
         <div class="left">
-          <v-ons-icon fixed-width class="list-item__icon" :icon="item.icon"></v-ons-icon>
+          <v-ons-icon fixed-width class="list-item__icon" :icon="page.icon"></v-ons-icon>
         </div>
         <div class="center">
-          {{ item.title }}
+          {{ page.title }}
         </div>
         <div class="right">
-          <v-ons-icon icon="fa-external-link"></v-ons-icon>
+          <v-ons-icon icon="ion-chevron-right"></v-ons-icon>
         </div>
       </v-ons-list-item>
+      <v-ons-list-item @click="logout" :modifier="md && 'nodivider'">
+        <div class="left">
+          <v-ons-icon fixed-width class="list-item__icon" icon="ion-locked, material:md-lock"></v-ons-icon>
+        </div>
+        <div class="center">
+          Log Out
+        </div>
+        <div class="right">
+          <v-ons-icon icon="ion-chevron-right"></v-ons-icon>
+        </div>
+      </v-ons-list-item>
+
     </v-ons-list>
   </v-ons-page>
 </template>
 
 <script>
+import User from '../views/Auth/User.vue'
+import { post, apiDomain } from '../helpers/api'
+import Auth from '../store/auth'
 export default {
   methods: {
     loadView(index) {
-      this.$store.commit('tabbar/set', index + 1);
+      this.$store.commit('tabbar/set', index);
       this.$store.commit('splitter/toggle');
     },
     loadLink(url) {
       window.open(url, '_blank');
-    }
+    },
+    push(page, key) {
+      this.$store.commit('navigator/push', {
+        extends: page,
+        data() {
+          return {
+            toolbarInfo: {
+              backLabel: 'Home',
+              title: key
+            }
+          }
+        }
+      });
+    },
+		logout() {
+			post( apiDomain + '/logout')
+			    .then((res) => {
+			        if(res.data.done) {
+			            // remove token
+			            Auth.remove()
+                  location.reload(true);
+			        }
+			    })
+		}
   },
   data() {
     return {
-      links: [
+      authState: Auth.state,
+      pages: [
         {
-          title: 'Docs',
-          icon: 'ion-document-text',
-          url: 'https://onsen.io/v2/docs/guide/vue/'
-        },
-        {
-          title: 'Github',
-          icon: 'ion-social-github',
-          url: 'https://github.com/OnsenUI/OnsenUI'
-        },
-        {
-          title: 'Code',
-          icon: 'ion-code',
-          url: 'https://github.com/OnsenUI/vue-onsenui-kitchensink'
-        },
-        {
-          title: 'Forum',
-          icon: 'ion-chatboxes',
-          url: 'https://community.onsen.io/'
-        },
-        {
-          title: 'Twitter',
-          icon: 'ion-social-twitter',
-          url: 'https://twitter.com/Onsen_UI'
+          component: User,
+          title: 'User',
+          icon: 'ion-person-add, material:md-person-add',
         }
       ],
       access: [
+        // {
+        //   title: 'Home',
+        //   icon: 'ion-home, material:md-home'
+        // },
         {
-          title: 'Home',
-          icon: 'ion-home, material:md-home'
+          title: 'ကုန္ပစၥည္း စာရင္း',
+          icon: 'ion-clipboard, material:md-assignment'
         },
         {
-          title: 'Forms',
-          icon: 'ion-edit, material:md-edit'
+          title: 'ေငြစာရင္း',
+          icon: 'ion-document-text, material:md-document-text'
         },
         {
-          title: 'Animations',
-          icon: 'ion-film-marker, material: md-movie-alt'
+          title: 'လုပ္ေဆာင္ရန္',
+          icon: 'ion-flag, material: md-flag'
         }
       ]
     };

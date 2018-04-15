@@ -9,7 +9,7 @@
 				accept="image/*"
 				@change="upload"
 				ref="fileInput">
-			<button @click="refs.fileInput.click()">image</button>
+			<button @click="$refs.fileInput.click()">Select Image</button>
 		</div>
 	</div>
 </template>

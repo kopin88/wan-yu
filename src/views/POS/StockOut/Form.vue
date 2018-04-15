@@ -1,7 +1,11 @@
 <template>
 <v-ons-page>
-  <page-toolbar :title="title"></page-toolbar>
-    <v-ons-card style="margin-top:63px">
+    <custom-toolbar backLabel="Anim" :title="title">
+      <template slot="right">
+        <v-ons-icon style="color:white" icon="md-check" :disabled="isProcessing" @click="save"></v-ons-icon>
+      </template>
+    </custom-toolbar>
+    <v-ons-card>
         <v-ons-list>
           <v-ons-list-header>Detail info</v-ons-list-header>
           <v-ons-list-item>
@@ -52,7 +56,7 @@
               <v-ons-icon icon="md-check" style="color: green;" class="list-item__icon" v-else></v-ons-icon>
             </div>
             <label class="center">
-              <v-ons-input float placeholder="ေန႔စြဲ" v-model="form.date" style="width:100%">
+              <v-ons-input type="date" float placeholder="ေန႔စြဲ" v-model="form.date" style="width:100%">
               </v-ons-input>
               <v-ons-text class="text__danger" v-if="error.date">{{"ေန႔စြဲ ထည့္ပါ"}}</v-ons-text>
             </label>
@@ -94,15 +98,15 @@
 
           <v-ons-list-item v-show="newItem.name != null">
             <div class="left">
-              <v-ons-icon icon="md-check" style="color: green;" class="list-item__icon" v-if="newItem.qty != null"></v-ons-icon>
+              <v-ons-icon icon="md-check" style="color: green;" class="list-item__icon" v-if="newQty != ''"></v-ons-icon>
               <v-ons-icon icon="md-minus-circle-outline" style="color: #FB8C00;" class="list-item__icon" v-else></v-ons-icon>
             </div>
             <label class="center">
-              <v-ons-input float placeholder="QTY" v-model="newItem.qty" style="width:80%">
+              <v-ons-input type="number" float placeholder="kg" v-model="newQty" style="width:80%">
               </v-ons-input>
             </label>
             <label class="right">
-              <v-ons-text v-show="newItem.qty != null" @click.stop="addItem">
+              <v-ons-text v-show="newQty != ''" @click.stop="addItem">
                 <v-ons-icon icon="md-plus-circle" style="color:green" class="list-item__icon"> </v-ons-icon>
               </v-ons-text>
             </label>
@@ -116,7 +120,7 @@
                     <th class="text-right">#</th>
                     <th class="text-center">SelectedItemName</th>
                     <th class="text-center">UnitPrice</th>
-                    <th class="text-center">Qty</th>
+                    <th class="text-center">Kg</th>
                     <th class="text-center">Total</th>
                     <th class="text-center"></th>
                   </tr>
@@ -152,7 +156,7 @@
                   <tr>
                     <td colspan="3">
                     </td>
-                    <td class="text-right"><v-ons-text>Remaining</v-ons-text></td>
+                    <td class="text-right"><v-ons-text>Remaining Balance</v-ons-text></td>
                     <td class="text-right">
                       <v-ons-text v-if="!remBalance">{{ form.rem_balance }} </v-ons-text>
                       <v-ons-input type="number" v-model="form.rem_balance" v-if="remBalance"></v-ons-input>
@@ -170,16 +174,14 @@
                     </td>
                     <td class="text-right"><v-ons-text>Discount</v-ons-text></td>
                     <td class="text-right">
-                      <v-ons-text v-if="!isDiscount">{{ form.discount }}
-                      </v-ons-text>
-                      <v-ons-input v-if="isDiscount" type="number" v-model="form.discount" class="text-right">
-                      </v-ons-input>
+                      <v-ons-text v-if="!discount">{{ form.discount }} </v-ons-text>
+                      <v-ons-input type="number" v-model="form.discount" v-if="discount"></v-ons-input>
                     </td>
                     <td>
-                      <v-ons-text @click="isDiscount = !isDiscount">
-                        <v-ons-icon icon="md-edit" style="color:green" class="list-item__icon" v-if="!isDiscount"> </v-ons-icon>
+                      <v-ons-text @click="discount = !discount">
+                        <v-ons-icon icon="md-edit" style="color:green" class="list-item__icon" v-if="!discount"> </v-ons-icon>
 
-                        <v-ons-icon icon="md-check" style="color:green" class="list-item__icon"  v-if="isDiscount"> </v-ons-icon>
+                        <v-ons-icon icon="md-check" style="color:green" class="list-item__icon"  v-if="discount"> </v-ons-icon>
                       </v-ons-text>
                     </td>
                   </tr>
@@ -194,41 +196,34 @@
                 </tfoot>
               </table>
             </div>
-          <!-- <v-ons-list-item>
-
-          </v-ons-list-item> -->
-          <v-ons-list-item>
-            <div class="center">
-              <v-ons-button @click="$router.back()" :disabled="isProcessing">Cancel</v-ons-button>
-            </div>
-            <div class="right">
-              <v-ons-button @click="save" :disabled="isProcessing">Save</v-ons-button>
-            </div>
-          </v-ons-list-item>
       </v-ons-list>
     </v-ons-card>
+    <v-ons-modal
+      :visible="modalVisible"
+    >
+      <p style="text-align: center">
+        Save <v-ons-icon icon="fa-spinner" spin></v-ons-icon>
+      </p>
+    </v-ons-modal>
 </v-ons-page>
 </template>
 <script>
 import Vue from 'vue'
 // import Flash from '../../../helpers/flash'
 import { get, post, apiDomain, imgUrl } from '../../../helpers/api'
-import PageToolbar from '../../Layout/Toolbar.vue'
 import Multiselect from 'vue-multiselect'
 import ImageUpload from '../../../components/ImageUpload.vue'
 import { toMulipartedForm } from '../../../helpers/form'
+import StockOutIndex from './Index.vue'
 
 export default {
-  components: {
-    PageToolbar,
-    ImageUpload,
-    Multiselect
-  },
+  components: { ImageUpload, Multiselect },
+  // mixins: [ VueFocus.mixin ],
   data() {
     return {
-      title: 'Stock Out',
       remBalance: false,
-      isDiscount: false,
+      discount: false,
+      modalVisible: false,
       stockouts: [],
       form: {
         itemQty: [],
@@ -248,6 +243,7 @@ export default {
       newItem: [{
         id:'', name:'', unit_price:'', qty:''
       }],
+      newQty: '',
       isProcessing: false,
       initializeURL: apiDomain + `/stockouts/create`,
       storeURL: apiDomain + `/stockouts`,
@@ -255,9 +251,9 @@ export default {
     }
   },
   created() {
-    if(this.$route.meta.mode === 'edit') {
-      this.initializeURL = apiDomain + `/stockouts/${this.$route.params.id}/edit`
-      this.storeURL = apiDomain + `/stockouts/${this.$route.params.id}?_method=PUT`
+    if(this.meta === 'edit') {
+      this.initializeURL = apiDomain + `/stockouts/${this.stockout.id}/edit`
+      this.storeURL = apiDomain + `/stockouts/${this.stockout.id}?_method=PUT`
       this.action = 'Update'
     }
     get(apiDomain + `/reports`)
@@ -267,7 +263,7 @@ export default {
     get(this.initializeURL)
       .then((res) => {
         Vue.set(this.$data, 'form', res.data.form)
-        if (this.$route.meta.mode === 'edit') {
+        if (this.meta === 'edit') {
           Vue.set(this.$data, 'selectYear', res.data.form.month.year_id)
           Vue.set(this.$data.form, 'itemQty', res.data.itemQty.itemouts)
           Vue.set(this.$data.form, 'rembalance', res.data.itemQty.rem_balance)
@@ -281,10 +277,10 @@ export default {
         if (this.form.month_id.length == 0 ) {
           this.searchReportYear()
         }
-        if (this.$route.meta.mode === 'edit') {
-            this.form.month_id = this.form.month.id
+        if (this.meta === 'edit') {
+          this.form.month_id = this.form.month.id
         }
-      },
+      }
       // selectMonth() {
       //   this.searchReportMonth()
       // }
@@ -306,7 +302,7 @@ export default {
           this.months = res.data.months
         })
     },
-    ItemSelect ({ name, code, brand_id, type_id, sale_price}) {
+    ItemSelect ({ name, code, brand_id, type_id, buy_price}) {
         return `${name}`
     },
     addItem() {
@@ -314,25 +310,30 @@ export default {
                 item_id:  this.newItem.id,
                 name:  this.newItem.name,
                 description:  this.newItem.description,
-                qty:  this.newItem.qty,
-                unit_price:  this.newItem.sale_price
+                qty:  this.newQty,
+                unit_price:  this.newItem.buy_price
             });
+            this.newQty = ''
             this.newItem = ''
 
     },
     save() {
-      const form = toMulipartedForm(this.form, this.$route.meta.mode)
+      this.modalVisible = true
+      // this.form.month_id = this.month.id
+      const form = toMulipartedForm(this.form, this.meta)
       post(this.storeURL, form)
           .then((res) => {
+              const apiUrl = 'http://wanyumm.com/api/stockouts'
               if(res.data.saved) {
-                  // Flash.setSuccess(res.data.message)
-                  this.$router.push(`/stockouts/${res.data.id}`)
-              }
-              this.isProcessing = false
-          })
-          .catch((err) => {
-              if(err.response.status === 422) {
-                  this.error = err.response.data
+                this.$store.commit('navigator/replace', {
+                  extends: StockOutIndex,
+                  data() {
+                    return {
+                      source: apiUrl,
+                      animation: 'default'
+                    }
+                  }
+                })
               }
               this.isProcessing = false
           })

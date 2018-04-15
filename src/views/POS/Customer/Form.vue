@@ -1,6 +1,10 @@
 <template>
 <v-ons-page>
-  <custom-toolbar backLabel="Anim" :title="title"></custom-toolbar>
+    <custom-toolbar backLabel="Anim" :title="title">
+      <template slot="right">
+        <v-ons-icon style="color:white" icon="md-check" :disabled="isProcessing" @click="save"></v-ons-icon>
+      </template>
+    </custom-toolbar>
     <v-ons-card>
       <image-upload v-model="form.image" style="width:100%"></image-upload>
       <v-ons-text class="text__danger" v-if="error.image">{{"ပံု ထည့္ပါ"}}</v-ons-text>
@@ -91,14 +95,6 @@
               <v-ons-text class="text__danger" v-if="error.image">{{"ပံု ထည့္ပါ"}}</v-ons-text>
             </div>
           </v-ons-list-item> -->
-          <v-ons-list-item>
-            <div class="center">
-              <v-ons-button @click="$router.back()" :disabled="isProcessing">Cancel</v-ons-button>
-            </div>
-            <div class="right">
-              <v-ons-button @click="save" :disabled="isProcessing">Save</v-ons-button>
-            </div>
-          </v-ons-list-item>
         </v-ons-list>
     </v-ons-card>
 </v-ons-page>

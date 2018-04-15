@@ -76,7 +76,7 @@
 							</v-ons-row>
 							<v-ons-row class="mg-top-10">
 								<v-ons-col>
-									<v-ons-input placeholder="Title" v-model="form.title" float style="width:100%"> </v-ons-input>
+									<v-ons-input type="text" placeholder="Title" v-model="form.title" float style="width:100%; font-family:Zawgyi-One"> </v-ons-input>
 									<v-ons-text class="text__danger" v-if="error.title">{{ error.title[0] }}
 									</v-ons-text>
 								</v-ons-col>
@@ -108,13 +108,29 @@
 			      </v-ons-alert-dialog>
 						<v-ons-alert-dialog modifier="rowfooter" :visible.sync="editFinancialYear">
 			        <span slot="title">Edit Financial Year</span>
-			        <v-ons-input float placeholder="Financial Year Name" v-model="year.name" style="width:100%">
+			        <v-ons-input type="text" float placeholder="Financial Year Name" v-model="year.name" style="width:100%;font-family:Zawgyi-One">
 			        </v-ons-input>
 			        <template slot="footer">
 			          <div class="alert-dialog-button" @click="editFinancialYear = false">Cancel</div>
 			          <div class="alert-dialog-button"  @click="saveFinancialYear" :disabled="isProcessingYear">Save</div>
 			        </template>
 			      </v-ons-alert-dialog>
+              <v-ons-card>
+                <v-ons-text>
+                  With Chart
+                </v-ons-text><br>
+                <!-- <div style="width:500px"> -->
+                  <template>
+                    <yearly
+                      :year_id="year.id"
+                      :width="400"
+                      :height="200"
+                    >
+                    </yearly>
+                  </template>
+                <!-- </div> -->
+              </v-ons-card>
+
   </v-ons-page>
 </template>
 
@@ -124,7 +140,11 @@
 	import { get, del, post, apiDomain } from '../../../helpers/api'
 	import { toMulipartedForm } from '../../../helpers/form'
 	import MonthShow from '../Month/Show.vue'
+  import Yearly from './YearlyChart.vue'
 	export default {
+    components: {
+      Yearly
+    },
 		data() {
 			return {
 				animation: 'default',
@@ -157,6 +177,9 @@
 					'November': 'November',
 					'December': 'December'
 				},
+        monthName: {},
+        inTotalChart: {},
+        outTotalChart: {}
 			}
 		},
 		created() {
@@ -165,6 +188,9 @@
 					this.months = res.data.months
 					this.monthBalance = res.data.monthBalance
 					this.form = res.data.form
+          this.monthName = res.data.monthName
+          this.inTotalChart = res.data.inTotal
+          this.outTotalChart = res.data.outTotal
 				})
 		},
 		computed: {

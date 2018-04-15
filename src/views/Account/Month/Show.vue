@@ -46,12 +46,13 @@
 					<report-data :reportsource = "reportsource" style="margin-top:20px"></report-data>
 				</v-ons-text>
 				<v-ons-text v-show="IncomeShow">
-					<income-data :insource = "insource" style="margin-top:20px"></income-data>
+					<income-data :month="month" :insource = "insource" style="margin-top:20px"></income-data>
 				</v-ons-text>
 				<v-ons-text v-show="ExpenseShow">
 					<expense-data :month="month" :outsource = "outsource" style="margin-top:20px"></expense-data>
 				</v-ons-text>
 			</v-ons-card>
+
 
       <v-ons-fab v-show="IncomeShow" position="bottom right" @click="incomeAdd(animation, month, apiUrl)">
         <v-ons-icon icon="md-plus"></v-ons-icon>
@@ -137,7 +138,8 @@
 						return {
 							animation: name,
 							month: data,
-							title: "New Income"
+							title: "New Income",
+              meta: 'create'
 						}
 					}
 				});

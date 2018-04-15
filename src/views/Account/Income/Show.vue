@@ -1,10 +1,12 @@
 <template>
 	<v-ons-page>
 		  <custom-toolbar backLabel="Anim" :title="title">
-				<template slot="right">
-					<v-ons-icon style="color:white; padding-right:10px" icon="md-edit" @click="incomeEdit(animation, income, apiUrl, month)"></v-ons-icon>
-					<v-ons-icon style="color:white" icon="md-delete"  @click="remove" :disabled="isRemoving"></v-ons-icon>
-			  </template>
+				<div v-if="authState.api_token && authState.user_id === income.user_id">
+					<template slot="right">
+						<v-ons-icon style="color:white; padding-right:10px" icon="md-edit" @click="incomeEdit(animation, income, apiUrl, month)"></v-ons-icon>
+						<v-ons-icon style="color:white" icon="md-delete"  @click="remove" :disabled="isRemoving"></v-ons-icon>
+					</template>
+				</div>
 		  </custom-toolbar>
         <v-ons-list>
               <v-ons-list-header>Text input</v-ons-list-header>
@@ -13,7 +15,7 @@
                   <v-ons-icon icon="md-calendar-check" class="list-item__icon" style="color: green;"></v-ons-icon>
                 </div>
                 <label class="center">
-									<v-ons-text style="width: 90%" type="date" v-text="income.date">
+									<v-ons-text style="width: 90%" type="date">{{income.date | moment('DD - MMM - YYYY')}}
 								</v-ons-text>
                 </label>
               </v-ons-list-item>
@@ -49,7 +51,7 @@
                     <v-ons-text v-text="income.remark" float style="width:90%"> </v-ons-text>
                 </label>
               </v-ons-list-item>
-              <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+              <v-ons-list-item v-show="income.image != null" :modifier="md ? 'nodivider' : ''">
                 <div class="left">
 									<v-ons-icon icon="md-label-alt" class="list-item__icon"  style="color: green;"></v-ons-icon>
                 </div>
@@ -58,23 +60,35 @@
                 </label>
               </v-ons-list-item>
         </v-ons-list>
+				<v-ons-modal
+		      :visible="modalVisible"
+		    >
+		      <p style="text-align: center">
+		        Delete <v-ons-icon icon="fa-spinner" spin></v-ons-icon>
+		      </p>
+		    </v-ons-modal>
 	</v-ons-page>
 
 </template>
 <script type="text/javascript">
+	import Vue from 'vue'
+	import Auth from '../../../store/auth'
 	import { imgUrl, apiDomain, post } from '../../../helpers/api'
-	import ExpenseForm from './Form.vue'
+	import IncomeForm from './Form.vue'
 	import MonthShow from '../Month/Show.vue'
+	Vue.use(require('vue-moment'));
 	export default {
 		components: {
-		  ExpenseForm
+		  IncomeForm
 		},
 		data() {
 			return {
+				authState: Auth.state,
 				animation:'default',
 				apiUrl: apiDomain,
 	      imgLink: imgUrl + 'vouchers/incomes/',
 				isRemoving: false,
+				modalVisible: false,
 			}
 		},
 		methods: {
@@ -89,19 +103,20 @@
 				});
 
 				this.$store.commit('navigator/push', {
-					extends: ExpenseForm,
+					extends: IncomeForm,
 					data() {
 						return {
 							animation: name,
 							income: data,
 							month: month,
-							title: "Edit Expense",
+							title: "Edit Income",
 							meta: 'edit'
 						}
 					}
 				});
 			},
 			remove() {
+				this.modalVisible = true
 				post(apiDomain + `/incomes/${this.income.id}?_method=DELETE`)
 					.then((res) => {
 						const apiUrl = 'http://wanyumm.com/api'

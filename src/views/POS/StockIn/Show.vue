@@ -1,7 +1,11 @@
 <template>
 <v-ons-page>
-  <page-toolbar :title="'Stock In'"></page-toolbar>
-  <v-ons-card style="margin-top:63px; padding-bottom:80px">
+    <custom-toolbar backLabel="Anim" :title="'Stock In'">
+      <!-- <template slot="right">
+        <v-ons-icon style="color:white; padding-right:10px" icon="md-edit"  @click="editFinancialYear = true"></v-ons-icon>
+      </template> -->
+    </custom-toolbar>
+  <v-ons-card style="padding-bottom:80px">
     <v-ons-row>
       <v-ons-col><v-ons-text>Invoice No . </v-ons-text>
       </v-ons-col>
@@ -34,7 +38,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(itemin, index) in stockin.itemins">
+                <tr v-for="(itemin, index) in stockinData.itemins">
                   <td><v-ons-text>{{ index + 1 }}</v-ons-text></td>
                   <td><v-ons-text>{{ itemin.name }}</v-ons-text></td>
                   <td class="text-right"><v-ons-text>{{ itemin.unit_price }}</v-ons-text></td>
@@ -82,7 +86,7 @@
     </v-ons-row>
   </v-ons-card>
   <!-- <img :src="imgLink + stockin.image" style="width: 125px"> -->
-  <v-ons-fab position="bottom right" @click="$router.push('/stockins/'+ stockin.id + '/edit')">
+  <v-ons-fab position="bottom right" @click="StockInEdit(animation, stockin)">
 			<v-ons-icon icon="md-edit"></v-ons-icon>
 		</v-ons-fab>
 </v-ons-page>
@@ -92,37 +96,59 @@
 import Auth from '../../../store/auth'
 // import Flash from '../../../helpers/flash'
 import { get, del, apiDomain, imgUrl } from '../../../helpers/api'
-import PageToolbar from '../../Layout/Toolbar.vue'
+import StockInForm from './Form.vue'
 // import ItemIn from './ItemIn.vue'
 // import ItemOut from './ItemOut.vue'
 export default {
   components: {
     // ItemIn, ItemOut,
-    PageToolbar
+    // PageToolbar
   },
   data() {
     return {
       // title: "OK Show Page",
       imgLink: imgUrl + 'stockins/',
       authState: Auth.state,
+      animation: 'default',
       isRemoving: false,
       isProcessing: false,
-      stockin: {
+      stockinData: {
         supplier: {},
         itemins: []
       }
     }
   },
   created() {
-    get( apiDomain + `/stockins/${this.$route.params.id}`)
+    get( apiDomain + `/stockins/${this.stockin.id}`)
       .then((res) => {
-        this.stockin = res.data.stockin
+        this.stockinData = res.data.stockin
       })
   },
   methods: {
+    StockInEdit(name, data) {
+      this.$store.commit('navigator/options', {
+        // Sets animations
+        animation: name,
+        stockin: data,
+        // Resets default options
+        callback: () => this.$store.commit('navigator/options', {})
+      });
+
+      this.$store.commit('navigator/push', {
+        extends: StockInForm,
+        data() {
+          return {
+            animation: name,
+            stockin: data,
+            title: "Edit Invoice",
+            meta: 'edit'
+          }
+        }
+      });
+    },
     remove() {
       this.isRemoving = false
-      del( apiDomain + `/stockins/${this.$route.params.id}`)
+      del( apiDomain + `/stockins/${this.stockin.id}`)
         .then((res) => {
           if (res.data.deleted) {
             // Flash.setSuccess('You have successfully deleted item!')

@@ -9,7 +9,7 @@
       </v-ons-toolbar-button>
     </custom-toolbar>
 
-    <v-ons-tabbar position="auto"
+    <v-ons-tabbar class="fontZawgyi" position="auto"
       swipeable
       :modifier="md ? 'autogrow white-content' : null"
       :on-swipe="md ? onSwipe : null"
@@ -27,7 +27,7 @@ import Home from './pages/Home.vue';
 import POS from './pages/POS.vue';
 import Account from './pages/Account.vue';
 // import Forms from './pages/Forms.vue';
-import Animations from './pages/Animations.vue';
+import Remark from './pages/Remark.vue';
 
 // Just a linear interpolation formula
 const lerp = (x0, x1, t) => parseInt((1 - t) * x0 + t * x1, 10);
@@ -54,15 +54,15 @@ export default {
         //   style: this.md ? { maxWidth: '60px' } : {},
         //   top: -105 // Toolbar + Tabbar heights
         // },
-        {
-          label: 'Home',
-          icon: this.md ? null : 'ion-home',
-          page: Home,
-          theme: green
-        },
+        // {
+        //   label: 'Home',
+        //   icon: this.md ? null : 'ion-home',
+        //   page: Home,
+        //   theme: green
+        // },
         {
           label: 'ကုန္ပစၥည္း စာရင္း',
-          icon: this.md ? null : 'ion-home',
+          icon: this.md ? null : 'ion-plus',
           page: POS,
           theme: green
         },
@@ -73,9 +73,9 @@ export default {
           theme: green
         },
         {
-          label: 'Anim',
-          icon: this.md ? null : 'ion-film-marker',
-          page: Animations,
+          label: 'လုပ္ေဆာင္ရန္',
+          icon: this.md ? null : 'ion-flag',
+          page: Remark,
           theme: green
         }
       ]
@@ -146,6 +146,10 @@ export default {
 
 .page--material .tabbar--white-content__button {
   color: rgba(255, 255, 255, 0.7);
+}
+
+.fontZawgyi {
+	font-family: 'Zawgyi-One';
 }
 
 .page--material .tabbar--white-content__border {

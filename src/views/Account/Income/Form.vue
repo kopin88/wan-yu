@@ -22,7 +22,7 @@
                   <v-ons-icon v-else icon="md-label-alt" class="list-item__icon"></v-ons-icon>
                 </div>
                 <label class="center">
-                    <v-ons-input placeholder="Income Name" v-model="form.name" float style="width:90%"> </v-ons-input>
+                    <v-ons-input type="text" placeholder="Income Name" v-model="form.name" float style="width:90%;font-family:Zawgyi-One;"> </v-ons-input>
                     <v-ons-text class="text__danger" v-if="error.name">{{ error.name[0] }}
                     </v-ons-text>
                 </label>
@@ -50,7 +50,7 @@
                   <v-ons-icon v-else icon="md-label-alt" class="list-item__icon"></v-ons-icon>
                 </div>
                 <label class="center">
-                  <v-ons-input placeholder="Add Account Head" float style="width:90%" v-focus="inheadfocus" @focus="inheadfocus = true" @blur="inheadfocus = false" v-model="inhead.name"> </v-ons-input>
+                  <v-ons-input type="text" placeholder="Add Account Head" float style="width:90%;font-family:Zawgyi-One;" v-focus="inheadfocus" @focus="inheadfocus = true" @blur="inheadfocus = false" v-model="inhead.name"> </v-ons-input>
                   <v-ons-text class="text__danger" v-if="error.name">{{ error.name[0] }}
                   </v-ons-text>
                 </label>
@@ -75,7 +75,7 @@
                   <v-ons-icon v-else icon="md-label-alt" class="list-item__icon"></v-ons-icon>
                 </div>
                 <label class="center">
-                    <v-ons-input placeholder="Description" v-model="form.description" float style="width:90%"> </v-ons-input>
+                    <v-ons-input placeholder="Description" v-model="form.description" float type="textarea" style="width:90%;font-family:Zawgyi-One;"> </v-ons-input>
                     <v-ons-text class="text__danger" v-if="error.description">{{ error.description[0] }}
                     </v-ons-text>
                 </label>
@@ -86,7 +86,7 @@
                   <v-ons-icon v-else icon="md-label-alt" class="list-item__icon"></v-ons-icon>
                 </div>
                 <label class="center">
-                    <v-ons-input placeholder="Remark" v-model="form.remark" float style="width:90%"> </v-ons-input>
+                    <v-ons-input placeholder="Remark" type="text" v-model="form.remark" float style="width:90%;font-family:Zawgyi-One;"> </v-ons-input>
                     <v-ons-text class="text__danger" v-if="error.remark">{{ error.remark[0] }}
                     </v-ons-text>
                 </label>
@@ -103,12 +103,20 @@
                 </label>
               </v-ons-list-item>
         </v-ons-list>
+				<v-ons-modal
+		      :visible="modalVisible"
+		    >
+		      <p style="text-align: center">
+		        Save <v-ons-icon icon="fa-spinner" spin></v-ons-icon>
+		      </p>
+		    </v-ons-modal>
 	</v-ons-page>
 
 </template>
 <script type="text/javascript">
 	import Vue from 'vue'
 	// import Flash from '../../../helpers/flash'
+	import Auth from '../../../store/auth'
 	import { focus } from 'vue-focus';
 	import { get, post, apiDomain } from '../../../helpers/api'
 	import { toMulipartedForm } from '../../../helpers/form'
@@ -120,7 +128,9 @@
 		components: { ImageUpload, MonthShow },
 		data() {
 			return {
+				authState: Auth.state,
 				form: {},
+				create: {},
 				forderPath: 'vouchers/incomes/',
 				monthList: {
 					'January': 'January',
@@ -143,6 +153,7 @@
 				inheadfocus: false,
 				addInHead: false,
 				isProcessing: false,
+				modalVisible: false,
 				initializeURL: apiDomain + `/incomes/create`,
 				storeURL: apiDomain + `/incomes`,
 				storeInHeadURL: apiDomain + `/inheads`,
@@ -150,12 +161,18 @@
 			}
 		},
 		created() {
-			get(apiDomain + `/${this.month.year_id}/months/${this.month.id}`)
-				.then((res) => {
-					// Vue.set(this.$data, 'form', res.data.income)
-					Vue.set(this.$data, 'inheads', res.data.inheads)
-				})
+			if (this.meta === 'create') {
+				get(apiDomain + `/${this.month.year_id}/months/${this.month.id}`)
+					.then((res) => {
+						Vue.set(this.$data, 'form', res.data.income)
+						Vue.set(this.$data, 'inheads', res.data.inheads)
+					})
+				}
 				if(this.meta === 'edit') {
+					get(apiDomain + `/${this.month.year_id}/months/${this.month.id}`)
+					.then((res) => {
+						Vue.set(this.$data, 'inheads', res.data.inheads)
+					})
 					this.initializeURL = apiDomain + `/incomes/${this.income.id}/edit`
 					this.storeURL = apiDomain + `/incomes/${this.income.id}?_method=PUT`
 					this.action = 'Update'
@@ -165,10 +182,12 @@
 		methods: {
 			save() {
 				this.form.month_id = this.month.id
+				this.form.user_id = this.authState.user_id
+				this.modalVisible = true
 				const form = toMulipartedForm(this.form, this.meta)
 				post(this.storeURL, form)
 				    .then((res) => {
-								const apiUrl = 'http://wanyumm.com/api'
+								const apiUrl = apiDomain
 				        if(res.data.saved) {
 									this.$store.commit('navigator/replace', {
 										extends: MonthShow,

@@ -1,10 +1,12 @@
 <template>
 	<v-ons-page>
-		  <custom-toolbar backLabel="Anim" :title="title">
-				<template slot="right">
-					<v-ons-icon style="color:white; padding-right:10px" icon="md-edit" @click="expenseEdit(animation, expense, apiUrl, month)"></v-ons-icon>
-					<v-ons-icon style="color:white" icon="md-delete"  @click="remove" :disabled="isRemoving"></v-ons-icon>
-			  </template>
+		  <custom-toolbar backLabel="ေငြစာရင္း" :title="title">
+				<div v-if="authState.api_token && authState.user_id === expense.user_id">
+					<template slot="right">
+						<v-ons-icon style="color:white; padding-right:10px" icon="md-edit" @click="expenseEdit(animation, expense, apiUrl, month)"></v-ons-icon>
+						<v-ons-icon style="color:white" icon="md-delete"  @click="remove" :disabled="isRemoving"></v-ons-icon>
+				  </template>
+				</div>
 		  </custom-toolbar>
         <v-ons-list>
               <v-ons-list-header>Text input</v-ons-list-header>
@@ -13,7 +15,7 @@
                   <v-ons-icon icon="md-calendar-check" class="list-item__icon" style="color: green;"></v-ons-icon>
                 </div>
                 <label class="center">
-									<v-ons-text style="width: 90%" type="date" v-text="expense.date">
+									<v-ons-text style="width: 90%" type="date">{{ expense.date | moment('DD - MMM - YYYY') }}
 								</v-ons-text>
                 </label>
               </v-ons-list-item>
@@ -49,7 +51,7 @@
                     <v-ons-text v-text="expense.remark" float style="width:90%"> </v-ons-text>
                 </label>
               </v-ons-list-item>
-              <v-ons-list-item :modifier="md ? 'nodivider' : ''">
+              <v-ons-list-item v-show="expense.image != null" :modifier="md ? 'nodivider' : ''">
                 <div class="left">
 									<v-ons-icon icon="md-label-alt" class="list-item__icon"  style="color: green;"></v-ons-icon>
                 </div>
@@ -58,23 +60,35 @@
                 </label>
               </v-ons-list-item>
         </v-ons-list>
+				<v-ons-modal
+		      :visible="modalVisible"
+		    >
+		      <p style="text-align: center">
+		        Delete <v-ons-icon icon="fa-spinner" spin></v-ons-icon>
+		      </p>
+		    </v-ons-modal>
 	</v-ons-page>
 
 </template>
 <script type="text/javascript">
+	import Vue from 'vue'
+	import Auth from '../../../store/auth'
 	import { imgUrl, apiDomain, post } from '../../../helpers/api'
 	import ExpenseForm from './Form.vue'
 	import MonthShow from '../Month/Show.vue'
+	Vue.use(require('vue-moment'));
 	export default {
 		components: {
 		  ExpenseForm
 		},
 		data() {
 			return {
+				authState: Auth.state,
 				animation:'default',
 				apiUrl: apiDomain,
 	      imgLink: imgUrl + 'vouchers/expenses/',
 				isRemoving: false,
+				modalVisible: false
 			}
 		},
 		methods: {
@@ -102,6 +116,7 @@
 				});
 			},
 			remove() {
+				this.modalVisible = true
 				post(apiDomain + `/expenses/${this.expense.id}?_method=DELETE`)
 					.then((res) => {
 						const apiUrl = 'http://wanyumm.com/api'
